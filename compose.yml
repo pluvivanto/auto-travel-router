@@ -1,0 +1,18 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: atr-backend
+    expose:
+      - "8080"
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    container_name: atr-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
