@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: atr-backend
+    ports:
+      - "8080:8080"
     expose:
       - "8080"
 
