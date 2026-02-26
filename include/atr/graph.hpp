@@ -42,7 +42,10 @@ class Router {
 public:
   virtual ~Router() = default;
   virtual std::optional<RouteResult> findRoute(NodeID start, NodeID end,
-                                                CostMetric metric) = 0;
+                                               CostMetric metric) = 0;
+  virtual std::vector<float> findDistances(NodeID start,
+                                           const std::vector<NodeID> &targets,
+                                           CostMetric metric) = 0;
 };
 
 } // namespace atr
