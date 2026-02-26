@@ -6,15 +6,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
     && apt-get install -y \
-    build-essential cmake git perl libboost-all-dev zlib1g-dev libosmium2-dev libprotozero-dev
+    build-essential cmake git perl libboost-context-dev libboost-coroutine-dev zlib1g-dev libosmium2-dev
 
 COPY . .
 
+ARG BUILD_TYPE=Release
 RUN --mount=type=cache,target=/app/build \
-    cmake -B build -S . \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_TESTING=OFF \
-    && cmake --build build --parallel $(nproc) \
+    make BUILD_TYPE=${BUILD_TYPE} BUILD_TESTING=OFF build \
     && mkdir -p /app/dist \
     && cp build/src/atr_server /app/dist/atr_server
 
@@ -22,7 +20,7 @@ FROM debian:stable-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    libboost-all-dev zlib1g-dev libosmium2-dev libprotozero-dev \
+    libboost-context-dev libboost-coroutine-dev zlib1g-dev libosmium2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system runner && useradd --system --gid=runner runner
