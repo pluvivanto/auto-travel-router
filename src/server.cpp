@@ -100,7 +100,7 @@ public:
     auto dur =
         std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(
             std::chrono::high_resolution_clock::now() - t1);
-    response->putHeader("X-Response-Time-Ms", std::to_string(dur.count()));
+    response->putHeader("X-Response-Time", std::to_string(dur.count()));
     return response;
   }
 

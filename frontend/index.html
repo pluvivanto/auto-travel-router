@@ -87,7 +87,7 @@
                 });
                 const data = await res.json();
                 if (data.status === "success") {
-                    document.getElementById('latency').innerText = parseFloat(res.headers.get('X-Response-Time-Ms')).toFixed(2) + ' ms';
+                    document.getElementById('latency').innerText = parseFloat(res.headers.get('X-Response-Time')).toFixed(2) + ' ms';
                     
                     data.days.forEach((day, i) => {
                         const color = colors[i % colors.length];
