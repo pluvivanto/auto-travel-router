@@ -58,16 +58,16 @@ public:
 
   ENDPOINT("POST", "/optimize", optimize,
            BODY_DTO(Object<OptimizeRequestDto>, b)) {
+    OATPP_LOGI("Server", "Received optimization request with %d POIs",
+               b->pois ? (int)b->pois->size() : 0);
     auto t1 = std::chrono::high_resolution_clock::now();
     std::vector<POI> pois;
     if (b->pois)
       for (const auto &p : *b->pois)
-        pois.emplace_back(m_g->findNearestNode(p->lat, p->lon), p->lat,
-                          p->lon);
+        pois.emplace_back(m_g->findNearestNode(p->lat, p->lon), p->lat, p->lon);
 
-    auto res =
-        m_o->optimize(m_g->findNearestNode(b->hotel->lat, b->hotel->lon),
-                      pois, b->numDays);
+    auto res = m_o->optimize(m_g->findNearestNode(b->hotel->lat, b->hotel->lon),
+                             pois, b->numDays);
     auto responseDto = OptimizeResponseDto::createShared();
     responseDto->status = "success";
     responseDto->days =
@@ -76,8 +76,7 @@ public:
     for (const auto &day : res.days) {
       auto dayDto = DailyItineraryDto::createShared();
       dayDto->sequence = oatpp::Vector<oatpp::Object<NodeDto>>::createShared();
-      dayDto->fullPath =
-          oatpp::Vector<oatpp::Object<NodeDto>>::createShared();
+      dayDto->fullPath = oatpp::Vector<oatpp::Object<NodeDto>>::createShared();
       for (auto nid : day.sequence) {
         const auto &n = m_g->nodeDetails(nid);
         auto d = NodeDto::createShared();
@@ -113,14 +112,18 @@ private:
 
 Server::Server(std::unique_ptr<Graph> g, std::unique_ptr<Router> r,
                std::unique_ptr<Optimizer> o)
-    : m_graph(std::move(g)), m_router(std::move(r)), m_optimizer(std::move(o)) {}
+    : m_graph(std::move(g)), m_router(std::move(r)), m_optimizer(std::move(o)) {
+}
 
 void Server::run(ServerConfig config) {
   oatpp::base::Environment::init();
   auto router = oatpp::web::server::HttpRouter::createShared();
   auto objectMapper =
       oatpp::parser::json::mapping::ObjectMapper::createShared();
-  router->addController(RouterController::createShared(objectMapper, std::move(m_graph), std::move(m_router), std::move(m_optimizer)));
+  router->addController(RouterController::createShared(
+      objectMapper, std::move(m_graph), std::move(m_router),
+      std::move(m_optimizer)));
+  OATPP_LOGI("Server", "Listening on port %d...", config.port);
   oatpp::network::Server(
       oatpp::network::tcp::server::ConnectionProvider::createShared(
           {config.address, config.port, oatpp::network::Address::IP_4}),

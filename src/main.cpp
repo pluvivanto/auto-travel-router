@@ -15,10 +15,13 @@ int main(int argc, char *argv[]) {
   try {
     OATPP_LOGI("Main", "Loading OSM data...");
     auto graph = atr::OSMReader::readPbf(argv[1]);
+    OATPP_LOGI("Main", "Graph loaded: %d nodes, %d edges",
+               (int)graph->nodeCount(), (int)graph->edgeCount());
     auto router = std::make_unique<atr::DijkstraRouter>(*graph);
     auto optimizer = std::make_unique<atr::Optimizer>(*graph, *router);
 
-    atr::Server server(std::move(graph), std::move(router), std::move(optimizer));
+    atr::Server server(std::move(graph), std::move(router),
+                       std::move(optimizer));
     server.run(atr::ServerConfig{});
   } catch (const std::exception &e) {
     OATPP_LOGE("Main", "Fatal error: %s", e.what());
