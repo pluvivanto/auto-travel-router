@@ -14,7 +14,7 @@ endif
 
 CMAKE_FLAGS += -DBUILD_TESTING=$(BUILD_TESTING)
 
-.PHONY: all setup build debug clean
+.PHONY: all setup build debug clean test
 
 all: build
 
@@ -24,6 +24,10 @@ setup:
 
 build: setup
 	cmake --build $(BUILD_DIR) --parallel $(NPROC)
+
+test: setup
+	cmake --build $(BUILD_DIR) --target unit_tests --parallel $(NPROC)
+	cd $(BUILD_DIR) && ctest --output-on-failure
 
 debug:
 	$(MAKE) BUILD_TYPE=Debug build
