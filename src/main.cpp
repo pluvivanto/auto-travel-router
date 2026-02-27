@@ -1,3 +1,5 @@
+#include "atr/ch_preprocessor.hpp"
+#include "atr/ch_router.hpp"
 #include "atr/dijkstra_router.hpp"
 #include "atr/optimizer.hpp"
 #include "atr/osm_reader.hpp"
@@ -14,13 +16,18 @@ int main(int argc, char *argv[]) {
 
   try {
     OATPP_LOGI("Main", "Loading OSM data...");
-    auto graph = atr::OSMReader::readPbf(argv[1]);
+    auto staticGraph = atr::OSMReader::readPbf(argv[1]);
     OATPP_LOGI("Main", "Graph loaded: %d nodes, %d edges",
-               (int)graph->nodeCount(), (int)graph->edgeCount());
-    auto router = std::make_unique<atr::DijkstraRouter>(*graph);
-    auto optimizer = std::make_unique<atr::Optimizer>(*graph, *router);
+               (int)staticGraph->nodeCount(), (int)staticGraph->edgeCount());
 
-    atr::Server server(std::move(graph), std::move(router),
+    auto chGraph = atr::CHPreprocessor::preprocess(*staticGraph,
+                                                   atr::CostMetric::Duration);
+    OATPP_LOGI("Main", "CH Preprocessing finished.");
+
+    auto router = std::make_unique<atr::CHRouter>(*chGraph);
+    auto optimizer = std::make_unique<atr::Optimizer>(*chGraph, *router);
+
+    atr::Server server(std::move(chGraph), std::move(router),
                        std::move(optimizer));
     server.run(atr::ServerConfig{});
   } catch (const std::exception &e) {

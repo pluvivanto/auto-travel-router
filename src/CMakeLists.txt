@@ -4,6 +4,9 @@ add_library(atr_impl
     osm_reader.cpp
     server.cpp
     optimizer.cpp
+    ch_graph.cpp
+    ch_preprocessor.cpp
+    ch_router.cpp
 )
 target_link_libraries(atr_impl PUBLIC atr_core Boost::context Boost::coroutine)
 
