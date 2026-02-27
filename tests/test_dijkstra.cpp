@@ -44,8 +44,3 @@ TEST(OptimizerTest, Clustering) {
   auto res = opt.optimize(0, pois, 2);
   EXPECT_EQ(res.days.size(), 2);
 }
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
