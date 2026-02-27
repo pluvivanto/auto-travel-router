@@ -1,5 +1,6 @@
 add_executable(unit_tests
     test_dijkstra.cpp
+    test_ch.cpp
 )
 
 target_link_libraries(unit_tests PRIVATE atr_impl GTest::gtest_main)
