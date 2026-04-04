@@ -51,8 +51,8 @@ std::optional<RouteResult> CHRouter::findRoute(NodeID start, NodeID end,
     if (!pqF.empty()) {
       auto [d, u] = pqF.top();
       pqF.pop();
-      if (d > bestDist && (!pqB.empty() && d > pqB.top().dist)) {
-        // Can't improve
+      if (d >= bestDist) {
+        pqF = {}; // Clear queue to stop forward search
       } else if (d <= distF[u]) {
         visitedF.push_back(u);
         for (const auto &e : m_graph.forwardNeighbors(u)) {
@@ -75,7 +75,8 @@ std::optional<RouteResult> CHRouter::findRoute(NodeID start, NodeID end,
     if (!pqB.empty()) {
       auto [d, u] = pqB.top();
       pqB.pop();
-      if (d > bestDist && (!pqF.empty() && d > pqF.top().dist)) {
+      if (d >= bestDist) {
+        pqB = {}; // Clear queue to stop backward search
       } else if (d <= distB[u]) {
         visitedB.push_back(u);
         for (const auto &e : m_graph.backwardNeighbors(u)) {
