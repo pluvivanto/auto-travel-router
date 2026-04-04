@@ -58,16 +58,31 @@ public:
 
   ENDPOINT("POST", "/optimize", optimize,
            BODY_DTO(Object<OptimizeRequestDto>, b)) {
+    if (!b->hotel || !b->pois) {
+      return createResponse(Status::CODE_400,
+                            "Missing hotel or pois in request");
+    }
+    if (b->numDays <= 0) {
+      return createResponse(Status::CODE_400, "numDays must be positive");
+    }
+
     OATPP_LOGI("Server", "Received optimization request with %d POIs",
-               b->pois ? (int)b->pois->size() : 0);
+               (int)b->pois->size());
     auto t1 = std::chrono::high_resolution_clock::now();
     std::vector<POI> pois;
-    if (b->pois)
-      for (const auto &p : *b->pois)
-        pois.emplace_back(m_g->findNearestNode(p->lat, p->lon), p->lat, p->lon);
+    for (const auto &p : *b->pois) {
+      auto nid = m_g->findNearestNode(p->lat, p->lon);
+      if (!nid)
+        return createResponse(Status::CODE_400, "Could not map POI to node");
+      pois.emplace_back(*nid, p->lat, p->lon);
+    }
 
-    auto res = m_o->optimize(m_g->findNearestNode(b->hotel->lat, b->hotel->lon),
-                             pois, b->numDays);
+    auto hotelNid = m_g->findNearestNode(b->hotel->lat, b->hotel->lon);
+    if (!hotelNid)
+      return createResponse(Status::CODE_400, "Could not map hotel to node");
+
+    auto res = m_o->optimize(*hotelNid, pois, b->numDays);
+
     auto responseDto = OptimizeResponseDto::createShared();
     responseDto->status = "success";
     responseDto->days =
