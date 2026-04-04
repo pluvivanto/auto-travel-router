@@ -12,8 +12,8 @@ struct OSMConfig {
 
 class OSMReader {
 public:
-  static std::unique_ptr<StaticGraph>
-  readPbf(const std::filesystem::path &path, OSMConfig config = OSMConfig{});
+  static std::unique_ptr<StaticGraph> readPbf(const std::filesystem::path &path,
+                                              OSMConfig config = OSMConfig{});
 };
 
 } // namespace atr

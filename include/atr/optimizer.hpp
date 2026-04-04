@@ -40,7 +40,7 @@ private:
 
   std::vector<Cluster> clusterPois(const std::vector<POI> &pois, int k);
   DailyItinerary optimizeDay(NodeID hotel, const std::vector<POI> &dayPois,
-                              CostMetric metric);
+                             CostMetric metric);
 
   Router &m_router;
 };
