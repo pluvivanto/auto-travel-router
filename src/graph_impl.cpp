@@ -32,7 +32,11 @@ std::span<const Edge> StaticGraph::neighbors(NodeID u) const {
 
 const Node &StaticGraph::nodeDetails(NodeID u) const { return m_nodes.at(u); }
 
-NodeID StaticGraph::findNearestNode(double lat, double lon) const {
+std::optional<NodeID> StaticGraph::findNearestNode(double lat,
+                                                   double lon) const {
+  if (m_nodes.empty())
+    return std::nullopt;
+
   NodeID bestNode = 0;
   double minDist = std::numeric_limits<double>::infinity();
 

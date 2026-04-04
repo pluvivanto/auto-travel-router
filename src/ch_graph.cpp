@@ -29,7 +29,10 @@ std::span<const CHEdge> CHGraph::backwardNeighbors(NodeID u) const {
           m_backwardEdges.data() + m_backwardOffsets[u + 1]};
 }
 
-NodeID CHGraph::findNearestNode(double lat, double lon) const {
+std::optional<NodeID> CHGraph::findNearestNode(double lat, double lon) const {
+  if (m_nodes.empty())
+    return std::nullopt;
+
   NodeID bestNode = 0;
   double minDist = std::numeric_limits<double>::infinity();
 

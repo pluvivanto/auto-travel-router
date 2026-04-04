@@ -26,7 +26,7 @@ public:
     return {};
   }
   const Node &nodeDetails(NodeID u) const override { return m_nodes[u]; }
-  NodeID findNearestNode(double lat, double lon) const override;
+  std::optional<NodeID> findNearestNode(double lat, double lon) const override;
 
   std::span<const CHEdge> forwardNeighbors(NodeID u) const;
   std::span<const CHEdge> backwardNeighbors(NodeID u) const;

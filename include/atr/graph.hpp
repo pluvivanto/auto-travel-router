@@ -30,7 +30,8 @@ public:
   virtual size_t edgeCount() const = 0;
   virtual std::span<const Edge> neighbors(NodeID u) const = 0;
   virtual const Node &nodeDetails(NodeID u) const = 0;
-  virtual NodeID findNearestNode(double lat, double lon) const = 0;
+  virtual std::optional<NodeID> findNearestNode(double lat,
+                                                double lon) const = 0;
 };
 
 struct RouteResult {

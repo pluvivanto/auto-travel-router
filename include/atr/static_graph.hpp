@@ -20,7 +20,7 @@ public:
   size_t edgeCount() const override { return m_edges.size(); }
   std::span<const Edge> neighbors(NodeID u) const override;
   const Node &nodeDetails(NodeID u) const override;
-  NodeID findNearestNode(double lat, double lon) const override;
+  std::optional<NodeID> findNearestNode(double lat, double lon) const override;
 
 private:
   std::vector<Node> m_nodes;
