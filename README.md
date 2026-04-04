@@ -4,10 +4,6 @@ ATR is a self-hosted service for multi-day travel planning. It automatically clu
 
 The example provided in this repository is configured for **Berlin**.
 
-## Demo
-
-![demo video](docs/demo.gif)
-
 ## Self-Hosting & Portability
 
 ATR is a standalone stack. While configured for Berlin by default, it can be deployed for any region:
