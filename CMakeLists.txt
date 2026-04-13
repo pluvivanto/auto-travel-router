@@ -13,33 +13,50 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-poison-system-directories")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-find_package(Boost REQUIRED COMPONENTS context coroutine)
 find_package(ZLIB REQUIRED)
 
-find_path(OSMIUM_INCLUDE_DIR osmium/version.hpp)
-find_path(PROTOZERO_INCLUDE_DIR protozero/version.hpp)
-
 include(FetchContent)
+
+# Header-only
+FetchContent_Declare(
+  protozero
+  GIT_REPOSITORY https://github.com/mapbox/protozero.git
+  GIT_TAG v1.7.1
+)
+FetchContent_Declare(
+  libosmium
+  GIT_REPOSITORY https://github.com/osmcode/libosmium.git
+  GIT_TAG v2.20.0
+)
+FetchContent_GetProperties(protozero)
+if(NOT protozero_POPULATED)
+  FetchContent_Populate(protozero)
+endif()
+FetchContent_GetProperties(libosmium)
+if(NOT libosmium_POPULATED)
+  FetchContent_Populate(libosmium)
+endif()
+
 set(OATPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(OATPP_LINK_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   oatpp
   GIT_REPOSITORY https://github.com/oatpp/oatpp.git
   GIT_TAG 1.3.0-latest
+  SYSTEM
 )
 FetchContent_MakeAvailable(oatpp)
+target_compile_options(oatpp PRIVATE -w)
 
 add_library(atr_core INTERFACE)
 target_compile_options(atr_core INTERFACE -Wall -Wextra)
-target_include_directories(atr_core INTERFACE 
-    include 
-    ${OSMIUM_INCLUDE_DIR} 
-    ${PROTOZERO_INCLUDE_DIR}
+target_include_directories(atr_core INTERFACE include)
+target_include_directories(atr_core SYSTEM INTERFACE
+    ${protozero_SOURCE_DIR}/include
+    ${libosmium_SOURCE_DIR}/include
 )
 target_link_libraries(atr_core INTERFACE 
-    Boost::context 
-    Boost::coroutine 
-    ZLIB::ZLIB 
+    ZLIB::ZLIB
     oatpp
 )
 

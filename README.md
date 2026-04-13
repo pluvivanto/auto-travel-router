@@ -30,12 +30,10 @@ ATR is a standalone stack. While configured for Berlin by default, it can be dep
 If you prefer to build the project directly on your system, you will need:
 
 * **Compiler:** A C++20 compatible compiler
-* **Tools:** CMake 3.20+ and GBuild/Ninja
+* **Tools:** CMake 3.20+ and Make/Ninja
 * **Libraries:**
-  * [Boost](https://www.boost.org/) (`context` and `coroutine`)
-  * [libosmium](https://github.com/osmcode/libosmium)
-  * [protozero](https://github.com/mapbox/protozero)
   * [zlib](https://www.zlib.net/)
+  * [libosmium](https://github.com/osmcode/libosmium), [protozero](https://github.com/mapbox/protozero), [oatpp](https://oatpp.io/), and [GoogleTest](https://github.com/google/googletest) are fetched automatically by CMake
 
 ## Interaction
 

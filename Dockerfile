@@ -6,7 +6,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
     && apt-get install -y \
-    build-essential cmake git perl libboost-context-dev libboost-coroutine-dev zlib1g-dev libosmium2-dev
+    build-essential cmake git zlib1g-dev
 
 COPY . .
 
@@ -20,7 +20,7 @@ FROM debian:stable-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-    libboost-context-dev libboost-coroutine-dev zlib1g-dev libosmium2-dev \
+    zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system runner && useradd --system --gid=runner runner

@@ -8,7 +8,7 @@ add_library(atr_impl
     ch_preprocessor.cpp
     ch_router.cpp
 )
-target_link_libraries(atr_impl PUBLIC atr_core Boost::context Boost::coroutine)
+target_link_libraries(atr_impl PUBLIC atr_core)
 
 add_executable(atr_server main.cpp)
 target_link_libraries(atr_server PRIVATE atr_impl)
