@@ -25,7 +25,7 @@ struct OptimizationResult {
 
 class Optimizer {
 public:
-  Optimizer(Graph &graph, Router &router);
+  Optimizer(Router &router);
 
   OptimizationResult optimize(const NodeID hotelNode,
                               const std::vector<POI> &pois, int numDays,

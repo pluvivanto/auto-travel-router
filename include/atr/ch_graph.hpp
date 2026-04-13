@@ -10,7 +10,7 @@ namespace atr {
 struct CHEdge {
   NodeID target;
   float weight;
-  NodeID skippedNode; // std::numeric_limits<NodeID>::max() if not a shortcut
+  NodeID skippedNode; // NO_NODE if not a shortcut
 };
 
 class CHGraph : public Graph {

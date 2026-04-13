@@ -1,6 +1,4 @@
 #include "atr/ch_graph.hpp"
-#include <cmath>
-#include <limits>
 
 namespace atr {
 
@@ -30,22 +28,7 @@ std::span<const CHEdge> CHGraph::backwardNeighbors(NodeID u) const {
 }
 
 std::optional<NodeID> CHGraph::findNearestNode(double lat, double lon) const {
-  if (m_nodes.empty())
-    return std::nullopt;
-
-  NodeID bestNode = 0;
-  double minDist = std::numeric_limits<double>::infinity();
-
-  for (size_t i = 0; i < m_nodes.size(); ++i) {
-    double dLat = m_nodes[i].lat - lat;
-    double dLon = m_nodes[i].lon - lon;
-    double distSq = dLat * dLat + dLon * dLon;
-    if (distSq < minDist) {
-      minDist = distSq;
-      bestNode = static_cast<NodeID>(i);
-    }
-  }
-  return bestNode;
+  return findNearestInNodes(m_nodes, lat, lon);
 }
 
 } // namespace atr

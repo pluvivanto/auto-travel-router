@@ -11,8 +11,8 @@ DijkstraRouter::DijkstraRouter(const Graph &graph) : m_graph(graph) {}
 std::optional<RouteResult> DijkstraRouter::findRoute(NodeID start, NodeID end,
                                                      CostMetric metric) {
   size_t n = m_graph.nodeCount();
-  std::vector<float> distances(n, std::numeric_limits<float>::infinity());
-  std::vector<NodeID> predecessors(n, std::numeric_limits<NodeID>::max());
+  std::vector<float> distances(n, INF_DIST);
+  std::vector<NodeID> predecessors(n, NO_NODE);
 
   using State = std::pair<float, NodeID>;
   std::priority_queue<State, std::vector<State>, std::greater<State>> pq;
@@ -40,12 +40,12 @@ std::optional<RouteResult> DijkstraRouter::findRoute(NodeID start, NodeID end,
     }
   }
 
-  if (distances[end] == std::numeric_limits<float>::infinity()) {
+  if (distances[end] == INF_DIST) {
     return std::nullopt;
   }
 
   std::vector<NodeID> path;
-  for (NodeID at = end; at != std::numeric_limits<NodeID>::max();
+  for (NodeID at = end; at != NO_NODE;
        at = predecessors[at]) {
     path.push_back(at);
   }
@@ -58,9 +58,9 @@ std::vector<float>
 DijkstraRouter::findDistances(NodeID start, const std::vector<NodeID> &targets,
                               CostMetric metric) {
   size_t n = m_graph.nodeCount();
-  std::vector<float> distances(n, std::numeric_limits<float>::infinity());
+  std::vector<float> distances(n, INF_DIST);
   std::vector<float> result(targets.size(),
-                            std::numeric_limits<float>::infinity());
+                            INF_DIST);
 
   std::vector<std::vector<size_t>> targetMap(n);
   size_t targetsToFind = 0;

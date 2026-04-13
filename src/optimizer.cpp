@@ -7,7 +7,7 @@
 namespace atr {
 using namespace std::chrono;
 
-Optimizer::Optimizer(Graph &g, Router &r) : m_router(r) { (void)g; }
+Optimizer::Optimizer(Router &r) : m_router(r) {}
 
 std::vector<Optimizer::Cluster>
 Optimizer::clusterPois(const std::vector<POI> &pois, int k) {
@@ -72,11 +72,11 @@ DailyItinerary Optimizer::optimizeDay(NodeID hotel,
     nodes.push_back(p.nodeId);
 
   size_t n = nodes.size();
-  std::vector<std::vector<float>> mat(n, std::vector<float>(n, 1e9f));
+  std::vector<std::vector<float>> mat(n, std::vector<float>(n, INF_DIST));
   for (size_t i = 0; i < n; ++i) {
     auto distances = m_router.findDistances(nodes[i], nodes, metric);
     for (size_t j = 0; j < n; ++j) {
-      if (i != j && distances[j] != std::numeric_limits<float>::infinity()) {
+      if (i != j && distances[j] != INF_DIST) {
         mat[i][j] = distances[j];
       }
     }
@@ -87,7 +87,7 @@ DailyItinerary Optimizer::optimizeDay(NodeID hotel,
   vis[0] = true;
   for (size_t i = 1; i < n; ++i) {
     size_t best = 0;
-    float minC = 1e9f;
+    float minC = INF_DIST;
     for (size_t j = 0; j < n; ++j)
       if (!vis[j] && mat[path.back()][j] < minC) {
         minC = mat[path.back()][j];

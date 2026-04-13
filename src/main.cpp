@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     OATPP_LOGI("Main", "CH Preprocessing finished.");
 
     auto router = std::make_unique<atr::CHRouter>(*chGraph);
-    auto optimizer = std::make_unique<atr::Optimizer>(*chGraph, *router);
+    auto optimizer = std::make_unique<atr::Optimizer>(*router);
 
     atr::Server server(std::move(chGraph), std::move(router),
                        std::move(optimizer));

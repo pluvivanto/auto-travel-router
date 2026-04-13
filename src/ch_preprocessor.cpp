@@ -1,10 +1,6 @@
 #include "atr/ch_preprocessor.hpp"
-#include <algorithm>
 #include <iostream>
-#include <limits>
-#include <map>
 #include <queue>
-#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -24,33 +20,25 @@ struct DynamicGraph {
   DynamicGraph(size_t n) : forward(n), backward(n), contracted(n, false) {}
 
   void addEdge(NodeID u, NodeID v, float weight,
-               NodeID skipped = std::numeric_limits<NodeID>::max()) {
+               NodeID skipped = NO_NODE) {
     forward[u].push_back({v, weight, skipped});
     backward[v].push_back({u, weight, skipped});
   }
 
   void updateEdge(NodeID u, NodeID v, float weight, NodeID skipped) {
-    for (auto &e : forward[u]) {
-      if (e.target == v) {
-        if (weight < e.weight) {
+    auto updateOrInsert = [&](std::vector<TempCHEdge> &edges, NodeID tgt) {
+      for (auto &e : edges) {
+        if (e.target == tgt && weight < e.weight) {
           e.weight = weight;
           e.skipped = skipped;
         }
-        goto found_forward;
+        if (e.target == tgt)
+          return;
       }
-    }
-    forward[u].push_back({v, weight, skipped});
-  found_forward:
-    for (auto &e : backward[v]) {
-      if (e.target == u) {
-        if (weight < e.weight) {
-          e.weight = weight;
-          e.skipped = skipped;
-        }
-        return;
-      }
-    }
-    backward[v].push_back({u, weight, skipped});
+      edges.push_back({tgt, weight, skipped});
+    };
+    updateOrInsert(forward[u], v);
+    updateOrInsert(backward[v], u);
   }
 };
 
@@ -71,7 +59,7 @@ float witnessSearch(const DynamicGraph &dg, NodeID start, NodeID end,
     pq.pop();
 
     if (d > limit)
-      return std::numeric_limits<float>::infinity();
+      return INF_DIST;
     if (u == end)
       return d;
     if (d > dist[u])
@@ -92,22 +80,25 @@ float witnessSearch(const DynamicGraph &dg, NodeID start, NodeID end,
       }
     }
   }
-  return std::numeric_limits<float>::infinity();
+  return INF_DIST;
 }
 
-std::unique_ptr<CHGraph> CHPreprocessor::preprocess(const StaticGraph &graph,
-                                                    CostMetric metric) {
+DynamicGraph buildDynamicGraph(const StaticGraph &graph, CostMetric metric) {
   size_t n = graph.nodeCount();
   DynamicGraph dg(n);
-
   for (size_t u = 0; u < n; ++u) {
     for (const auto &e : graph.neighbors(static_cast<NodeID>(u))) {
       float weight = (metric == CostMetric::Distance) ? e.distance : e.duration;
       dg.addEdge(static_cast<NodeID>(u), e.target, weight);
     }
   }
+  return dg;
+}
 
+std::vector<uint32_t> contractNodes(DynamicGraph &dg) {
+  size_t n = dg.forward.size();
   std::vector<uint32_t> levels(n, 0);
+
   auto calcImportance = [&](NodeID u) {
     int shortcuts = 0;
     int incidentEdges = 0;
@@ -131,9 +122,8 @@ std::unique_ptr<CHGraph> CHPreprocessor::preprocess(const StaticGraph &graph,
                       std::greater<NodePriority>>
       pq;
 
-  for (size_t i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i)
     pq.push({calcImportance(static_cast<NodeID>(i)), static_cast<NodeID>(i)});
-  }
 
   uint32_t currentLevel = 0;
   int contractedCount = 0;
@@ -145,7 +135,6 @@ std::unique_ptr<CHGraph> CHPreprocessor::preprocess(const StaticGraph &graph,
     if (dg.contracted[v])
       continue;
 
-    // Lazy re-evaluation
     int currentImp = calcImportance(v);
     if (!pq.empty() && currentImp > pq.top().first) {
       pq.push({currentImp, v});
@@ -171,56 +160,44 @@ std::unique_ptr<CHGraph> CHPreprocessor::preprocess(const StaticGraph &graph,
 
         float weight = in.weight + out.weight;
         float wdist = witnessSearch(dg, in.target, out.target, v, weight);
-        if (wdist > weight) {
+        if (wdist > weight)
           dg.updateEdge(in.target, out.target, weight, v);
-        }
       }
     }
   }
+  return levels;
+}
 
-  std::vector<CHEdge> finalForward;
+std::unique_ptr<CHGraph> buildCHGraph(const StaticGraph &graph,
+                                      const DynamicGraph &dg,
+                                      const std::vector<uint32_t> &levels) {
+  size_t n = graph.nodeCount();
+
   std::vector<size_t> forwardOffsets(n + 1, 0);
-  std::vector<CHEdge> finalBackward;
   std::vector<size_t> backwardOffsets(n + 1, 0);
-
   for (size_t u = 0; u < n; ++u) {
-    for (const auto &e : dg.forward[u]) {
-      if (levels[e.target] > levels[u]) {
-        finalForward.push_back({e.target, e.weight, e.skipped});
+    for (const auto &e : dg.forward[u])
+      if (levels[e.target] > levels[u])
         forwardOffsets[u + 1]++;
-      }
-    }
-    for (const auto &e : dg.backward[u]) {
-      if (levels[e.target] > levels[u]) {
-        finalBackward.push_back({e.target, e.weight, e.skipped});
+    for (const auto &e : dg.backward[u])
+      if (levels[e.target] > levels[u])
         backwardOffsets[u + 1]++;
-      }
-    }
   }
-
   for (size_t i = 0; i < n; ++i) {
     forwardOffsets[i + 1] += forwardOffsets[i];
     backwardOffsets[i + 1] += backwardOffsets[i];
   }
 
-  std::vector<CHEdge> sortedForward(finalForward.size());
-  std::vector<size_t> curF = forwardOffsets;
+  std::vector<CHEdge> sortedForward(forwardOffsets[n]);
+  std::vector<CHEdge> sortedBackward(backwardOffsets[n]);
+  std::vector<size_t> curF = forwardOffsets, curB = backwardOffsets;
   for (size_t u = 0; u < n; ++u) {
-    for (const auto &e : dg.forward[u]) {
-      if (levels[e.target] > levels[u]) {
+    for (const auto &e : dg.forward[u])
+      if (levels[e.target] > levels[u])
         sortedForward[curF[u]++] = {e.target, e.weight, e.skipped};
-      }
-    }
-  }
-
-  std::vector<CHEdge> sortedBackward(finalBackward.size());
-  std::vector<size_t> curB = backwardOffsets;
-  for (size_t u = 0; u < n; ++u) {
-    for (const auto &e : dg.backward[u]) {
-      if (levels[e.target] > levels[u]) {
+    for (const auto &e : dg.backward[u])
+      if (levels[e.target] > levels[u])
         sortedBackward[curB[u]++] = {e.target, e.weight, e.skipped};
-      }
-    }
   }
 
   std::vector<Node> nodes(n);
@@ -230,6 +207,13 @@ std::unique_ptr<CHGraph> CHPreprocessor::preprocess(const StaticGraph &graph,
   return std::make_unique<CHGraph>(
       std::move(nodes), std::move(sortedForward), std::move(forwardOffsets),
       std::move(sortedBackward), std::move(backwardOffsets), std::move(levels));
+}
+
+std::unique_ptr<CHGraph> CHPreprocessor::preprocess(const StaticGraph &graph,
+                                                    CostMetric metric) {
+  auto dg = buildDynamicGraph(graph, metric);
+  auto levels = contractNodes(dg);
+  return buildCHGraph(graph, dg, levels);
 }
 
 } // namespace atr

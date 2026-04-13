@@ -1,5 +1,4 @@
 #include "atr/static_graph.hpp"
-#include <limits>
 #include <span>
 #include <vector>
 
@@ -34,22 +33,7 @@ const Node &StaticGraph::nodeDetails(NodeID u) const { return m_nodes.at(u); }
 
 std::optional<NodeID> StaticGraph::findNearestNode(double lat,
                                                    double lon) const {
-  if (m_nodes.empty())
-    return std::nullopt;
-
-  NodeID bestNode = 0;
-  double minDist = std::numeric_limits<double>::infinity();
-
-  for (size_t i = 0; i < m_nodes.size(); ++i) {
-    double dLat = m_nodes[i].lat - lat;
-    double dLon = m_nodes[i].lon - lon;
-    double distSq = dLat * dLat + dLon * dLon;
-    if (distSq < minDist) {
-      minDist = distSq;
-      bestNode = static_cast<NodeID>(i);
-    }
-  }
-  return bestNode;
+  return findNearestInNodes(m_nodes, lat, lon);
 }
 
 } // namespace atr

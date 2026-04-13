@@ -2,7 +2,6 @@
 
 #include "atr/ch_graph.hpp"
 #include "atr/graph.hpp"
-#include <map>
 
 namespace atr {
 

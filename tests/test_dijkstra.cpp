@@ -39,7 +39,7 @@ TEST(RouterTest, DijkstraOneToMany) {
 TEST(OptimizerTest, Clustering) {
   auto g = createTestGraph();
   auto r = std::make_unique<DijkstraRouter>(*g);
-  Optimizer opt(*g, *r);
+  Optimizer opt(*r);
   std::vector<POI> pois = {{1, 52.6, 13.4}, {2, 52.5, 13.5}};
   auto res = opt.optimize(0, pois, 2);
   EXPECT_EQ(res.days.size(), 2);
